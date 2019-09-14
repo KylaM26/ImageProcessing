@@ -8,61 +8,65 @@
 
 typedef unsigned char BYTE;
 
+class BMPImage {
+private: 
+    int width, height, bitDepth;
+    BYTE header[54], colorTable[1024];
+    BYTE* buffer;
+public:
+    BMPImage(const char* filePath) {
+        FILE* imageFile = fopen(filePath, "rb");
+
+        if(imageFile != (FILE*)0) {
+            for(int i = 0; i < sizeof(header); i++)
+                header[i] = getc(imageFile);
+
+            width = *(int*)&header[18];
+            height = *(int*)&header[22];
+            bitDepth = *(int*)&header[28];
+
+            if(bitDepth <= 8) 
+                fread(colorTable, sizeof(BYTE), 1024, imageFile);
+
+            buffer = (BYTE*)malloc(width * height);
+
+            if(buffer != (BYTE*)0) 
+                fread(buffer, sizeof(BYTE), width * height, imageFile);
+
+            fclose(imageFile);        
+        }
+
+    }
+
+    void CreateCopy(const char* filePath) const {
+        FILE* copyImage = fopen(filePath, "wb");
+
+        if(copyImage != (FILE*)0) {
+            fwrite(header, sizeof(BYTE), 54, copyImage);
+
+            if(bitDepth <= 8) 
+                fwrite(colorTable, sizeof(BYTE), 1024, copyImage);
+
+            fwrite(buffer, sizeof(BYTE), width * height, copyImage);
+
+            fclose(copyImage);
+        }
+    }
+
+    const int GetWidth() const { return width; }
+    const int GetHeight() const { return height; }
+    const int GetBitDepth() const { return bitDepth; }
+
+    ~BMPImage() {
+        free(buffer);
+    }
+};
+
 int main() {
-    FILE* sourceImage = fopen("../Resources/SourceImages/cameraman.bmp", "rb");
-    
-    if(sourceImage == (FILE*)0) {
-        printf("Failed to open source image for reading.\n");
-        system("pause");
-        return 1;
-    }
+    const BMPImage myImage("../Resources/SourceImages/cameraman.bmp");
+    myImage.CreateCopy("../Resources/MyImages/cameraman.bmp");
 
-    FILE* myImage = fopen("../Resources/MyImages/man_with_camera.bmp", "wb");
-
-    if(myImage == (FILE*)0) {
-        printf("Failed to create copy image.\n");
-        system("pause");
-        return 1;
-    }
-
-    BYTE header[54]; // BMP Header
-    BYTE colorTable[1024]; // BMP Colortable
-
-    // Reading image header
-    for(int i = 0; i < sizeof(header); i++) 
-        header[i] = getc(sourceImage);
-    
-
-    // Extracting width, height, bitDepth
-    const int width = *(int*)&header[18];
-    const int height = *(int*)&header[22];
-    const int bitDepth = *(int*)&header[28];
-
-    if(bitDepth <= 8)  // If valid bitdepth
-        fread(colorTable, sizeof(BYTE), 1024, sourceImage); // Store color information into colorTable
-    
-    BYTE* buffer = (BYTE*)malloc(width * height);
-
-    if(buffer == (BYTE*)0) {
-        printf("Failed to allocate buffer.\n");
-        return 1;
-    }
-
-    fread(buffer, sizeof(BYTE), width * height, sourceImage);
-    
-    // Writes the header into copy image
-    fwrite(header, sizeof(BYTE), 54, myImage); 
-
-    if(bitDepth <= 8)
-        fwrite(colorTable, sizeof(BYTE), 1024, myImage);
-
-    fwrite(buffer, sizeof(BYTE), width * height, myImage);
-
-    fclose(sourceImage);
-    fclose(myImage);
-    free(buffer);
-
-    printf("Width: %d, Height: %d\n", width, height);
+    printf("Width: %d, Height: %d\n", myImage.GetWidth(), myImage.GetHeight());
 
     system("pause");
     return 0;
