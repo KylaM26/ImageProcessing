@@ -10,12 +10,13 @@ typedef unsigned char BYTE;
 
 class BMPImage {
 private: 
+    FILE* imageFile;
     int width, height, bitDepth;
     BYTE header[54], colorTable[1024];
     BYTE* buffer;
 public:
     BMPImage(const char* filePath) {
-        FILE* imageFile = fopen(filePath, "rb");
+        imageFile = fopen(filePath, "rb");
 
         if(imageFile != (FILE*)0) {
             for(int i = 0; i < sizeof(header); i++)
@@ -31,14 +32,11 @@ public:
             buffer = (BYTE*)malloc(width * height);
 
             if(buffer != (BYTE*)0) 
-                fread(buffer, sizeof(BYTE), width * height, imageFile);
-
-            fclose(imageFile);        
+                fread(buffer, sizeof(BYTE), width * height, imageFile);        
         }
-
     }
 
-    void CreateCopy(const char* filePath) const {
+    void Duplicate(const char* filePath) const {
         FILE* copyImage = fopen(filePath, "wb");
 
         if(copyImage != (FILE*)0) {
@@ -58,13 +56,16 @@ public:
     const int GetBitDepth() const { return bitDepth; }
 
     ~BMPImage() {
-        free(buffer);
+        if(buffer = (BYTE*)0)
+            free(buffer);
+
+        fclose(imageFile);
     }
 };
 
 int main() {
-    const BMPImage myImage("../Resources/SourceImages/cameraman.bmp");
-    myImage.CreateCopy("../Resources/MyImages/cameraman.bmp");
+    BMPImage myImage("../Resources/SourceImages/cameraman.bmp");
+    myImage.Duplicate("../Resources/MyImages/cameraman.bmp");
 
     printf("Width: %d, Height: %d\n", myImage.GetWidth(), myImage.GetHeight());
 
