@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <malloc.h>
 
 // BMP IMAGE
 // Image header
@@ -32,8 +33,29 @@ public:
             buffer = (BYTE*)malloc(width * height);
 
             if(buffer != (BYTE*)0) 
-                fread(buffer, sizeof(BYTE), width * height, imageFile);        
+                fread(buffer, sizeof(BYTE), width * height, imageFile);  
+
+            fclose(imageFile);      
         }
+    }
+
+    const BMPImage& operator=(const BMPImage& image) {
+        for(int i = 0; i < sizeof(image.header); i++)
+            this->header[i] = getc(image.imageFile);
+
+        this->width = *(int*)&image.header[18];
+        this->height = *(int*)&image.header[22];
+        this->bitDepth = *(int*)&image.header[28];
+
+        if(this->bitDepth <= 8)
+            fread(this->colorTable, sizeof(BYTE), 1024, image.imageFile);
+
+        realloc(this->buffer, this->width * this->height);
+
+        if(this->buffer != (BYTE*)0)
+            fread(this->buffer, sizeof(BYTE), this->width * this->height, image.imageFile);
+
+        return *this;
     }
 
     void Duplicate(const char* filePath) const {
@@ -59,7 +81,7 @@ public:
         if(buffer = (BYTE*)0)
             free(buffer);
 
-        fclose(imageFile);
+     //   fclose(imageFile);
     }
 };
 
