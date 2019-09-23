@@ -8,7 +8,6 @@ typedef unsigned char BYTE;
 #define THRESHOLD 150
 
 int main() {
-  
     FILE* sourceFile = fopen("../Resources/SourceImages/lighthouse.bmp", "rb");
     FILE* destinationFile = fopen("../Resources/MyImages/lighthouse_black_white.bmp", "wb");
 

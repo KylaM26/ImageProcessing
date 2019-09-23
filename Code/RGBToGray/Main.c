@@ -19,7 +19,6 @@ int main() {
     }
 
     unsigned char header[54];
-    unsigned char colorTable[1024];
 
     for(int i = 0; i < sizeof(header); i++) {
         header[i] = getc(sourceFile);
